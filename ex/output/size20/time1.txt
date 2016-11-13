@@ -1,3 +1,3 @@
-insert 0~9 0.000003000s
-insert 10~19 0.000001000s
-insert total 0.000004000s
+insert 0~9 0.000002053s
+insert 10~19 0.000001873s
+insert total 0.000003926s

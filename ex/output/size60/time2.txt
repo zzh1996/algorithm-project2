@@ -1,2 +1,2 @@
-delete node1 0.000000000s
-delete node2 0.000001000s
+delete node1 0.000000400s
+delete node2 0.000000693s
