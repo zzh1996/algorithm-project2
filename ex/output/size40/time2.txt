@@ -1,0 +1,2 @@
+delete node1 0.000002000s
+delete node2 0.000001000s

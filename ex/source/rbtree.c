@@ -1,5 +1,6 @@
 #include<stdio.h>
 #include<stdlib.h>
+#include<time.h>
 
 enum node_colors{
 	BLACK,
@@ -266,34 +267,137 @@ struct node *new_node(int k){
 	return p;
 }
 
+void preorder(struct node *p,FILE *fp){
+	if(p==NIL)
+		return;
+	fprintf(fp,"%d\n",p->key);
+	preorder(p->left,fp);
+	preorder(p->right,fp);
+}
+
+void inorder(struct node *p,FILE *fp){
+	if(p==NIL)
+		return;
+	inorder(p->left,fp);
+	fprintf(fp,"%d\n",p->key);
+	inorder(p->right,fp);
+}
+
+void postorder(struct node *p,FILE *fp){
+	if(p==NIL)
+		return;
+	postorder(p->left,fp);
+	postorder(p->right,fp);
+	fprintf(fp,"%d\n",p->key);
+}
+
 void output(struct node *p){
 	if(p==NIL)
 		return;
 	output(p->left);
-	printf("%d L=%d R=%d P=%d color=%c size=%d\n",p->key,p->left->key,p->right->key,p->p->key,p->color==RED?'R':'B',p->size);
+	printf("  %d L=%d R=%d P=%d color=%c size=%d\n",p->key,p->left->key,p->right->key,p->p->key,p->color==RED?'R':'B',p->size);
 	output(p->right);
 }
 
 int main(){
-	int test[]={9,5,7,4,1,3,2,8},i;
+	FILE *fp;
+	int data[80];
+	struct node *nodes[10];
+	int i,j;
+	int n;
+	char path[100];
+
+	double diff,total;
+	struct timespec start,stop;
+
+	struct node *node1,*node2;
+
 	node_NIL.color=BLACK;
 	node_NIL.key=-1;
 	node_NIL.left=NULL;
 	node_NIL.right=NULL;
 	node_NIL.p=NULL;
 	node_NIL.size=0;
-	root=NIL;
 
-	for(i=0;i<sizeof(test)/sizeof(*test);i++)
-		rb_insert(new_node(test[i]));
-	output(root);
+	fp=fopen("../input/input.txt","rt");
+	for(i=0;i<80;i++){
+		fscanf(fp,"%d",&data[i]);
+	}
+	fclose(fp);
 
-	rb_delete(os_select(root,6));
+	for(n=20;n<=80;n+=20){
+		sprintf(path,"../output/size%d/time1.txt",n);
+		fp=fopen(path,"wt");
+		root=NIL;
+		total=0;
+		for(i=0;i<n;i+=10){
+			for(j=0;j<10;j++)
+				nodes[j]=new_node(data[i+j]);
+			clock_gettime(CLOCK_MONOTONIC,&start);
+			for(j=0;j<10;j++)
+				rb_insert(nodes[j]);
+			clock_gettime(CLOCK_MONOTONIC,&stop);
+			diff=(stop.tv_sec-start.tv_sec)+(double)(stop.tv_nsec-start.tv_nsec )/1000000000L;
+			total+=diff;
+			fprintf(fp,"insert %d~%d %.9fs\n",i,i+9,diff);
+		}
+		fprintf(fp,"insert total %.9fs\n",total);
+		fclose(fp);
 
-	output(root);
+		sprintf(path,"../output/size%d/preorder.txt",n);
+		fp=fopen(path,"wt");
+		preorder(root,fp);
+		fclose(fp);
 
-	printf("os_select %d\n",os_select(root,6)->key);
-	printf("os_rank %d\n",os_rank(os_select(root,6)));
+		sprintf(path,"../output/size%d/inorder.txt",n);
+		fp=fopen(path,"wt");
+		inorder(root,fp);
+		fclose(fp);
+
+		sprintf(path,"../output/size%d/postorder.txt",n);
+		fp=fopen(path,"wt");
+		postorder(root,fp);
+		fclose(fp);
+
+		node1=os_select(root,n/4);
+		node2=os_select(root,n/2);
+
+		sprintf(path,"../output/size%d/delete_data.txt",n);
+		fp=fopen(path,"wt");
+		fprintf(fp,"%d\n%d\n",node1->key,node2->key);
+		fclose(fp);
+
+		sprintf(path,"../output/size%d/time2.txt",n);
+		fp=fopen(path,"wt");
+		if(n==20){
+			printf("before delete");
+			output(root);
+		}
+		clock_gettime(CLOCK_MONOTONIC,&start);
+		rb_delete(node1);
+		clock_gettime(CLOCK_MONOTONIC,&stop);
+		diff=(stop.tv_sec-start.tv_sec)+(double)(stop.tv_nsec-start.tv_nsec )/1000000000L;
+		fprintf(fp,"delete node1 %.9fs\n",diff);
+		if(n==20){
+			printf("after delete node1");
+			output(root);
+		}
+		clock_gettime(CLOCK_MONOTONIC,&start);
+		rb_delete(node2);
+		clock_gettime(CLOCK_MONOTONIC,&stop);
+		diff=(stop.tv_sec-start.tv_sec)+(double)(stop.tv_nsec-start.tv_nsec )/1000000000L;
+		fprintf(fp,"delete node2 %.9fs\n",diff);
+		if(n==20){
+			printf("after delete node2");
+			output(root);
+		}
+		fclose(fp);
+
+		sprintf(path,"../output/size%d/delete_inorder.txt",n);
+		fp=fopen(path,"wt");
+		inorder(root,fp);
+		fclose(fp);
+	}
 
 	return 0;
 }
