@@ -35,8 +35,8 @@ void left_rotate(struct node *x){
 		x->p->right=y;
 	y->left=x;
 	x->p=y;
-	y->size=x->size;//
-	x->size=x->left->size+x->right->size+1;//
+	y->size=x->size; //y的size置为x的size
+	x->size=x->left->size+x->right->size+1; //重新计算x的size
 }
 
 void right_rotate(struct node *x){
@@ -53,8 +53,8 @@ void right_rotate(struct node *x){
 		x->p->left=y;
 	y->right=x;
 	x->p=y;
-	y->size=x->size;//
-	x->size=x->left->size+x->right->size+1;//
+	y->size=x->size; //y的size置为x的size
+	x->size=x->left->size+x->right->size+1; //重新计算x的size
 }
 
 void rb_insert_fixup(struct node *z){
@@ -102,7 +102,7 @@ void rb_insert(struct node *z){
 	struct node *x=root;
 	while(x!=NIL){
 		y=x;
-		x->size++; //
+		x->size++; //插入新结点路上的size都+1
 		if(z->key<x->key)
 			x=x->left;
 		else
@@ -118,7 +118,7 @@ void rb_insert(struct node *z){
 	z->left=NIL;
 	z->right=NIL;
 	z->color=RED;
-	z->size=1;//
+	z->size=1; //新结点的size为1
 	rb_insert_fixup(z);
 }
 
@@ -138,7 +138,7 @@ struct node *tree_minimum(struct node *x){
 	return x;
 }
 
-void rb_delete_fixup_size(struct node *x){
+void rb_delete_fixup_size(struct node *x){ //删除结点时维护size
 	while(x!=root){
 		x=x->p;
 		x->size--;
@@ -206,16 +206,16 @@ void rb_delete(struct node *z){
 	struct node *x;
 	enum node_colors y_original_color=y->color;
 	if(z->left==NIL){
-		rb_delete_fixup_size(y);//
+		rb_delete_fixup_size(y); //删除结点时y原位置到根的size都-1
 		x=z->right;
 		rb_transplant(z,z->right);
 	}else if(z->right==NIL){
-		rb_delete_fixup_size(y);//
+		rb_delete_fixup_size(y); //删除结点时y原位置到根的size都-1
 		x=z->left;
 		rb_transplant(z,z->left);
 	}else{
 		y=tree_minimum(z->right);
-		rb_delete_fixup_size(y);//
+		rb_delete_fixup_size(y); //删除结点时y原位置到根的size都-1
 		y_original_color=y->color;
 		x=y->right;
 		if(y->p==z){
@@ -229,13 +229,13 @@ void rb_delete(struct node *z){
 		y->left=z->left;
 		y->left->p=y;
 		y->color=z->color;
-		y->size=z->size;//
+		y->size=z->size; //y的新size即为z的size
 	}
 	if(y_original_color==BLACK)
 		rb_delete_fixup(x);
 }
 
-struct node *os_select(struct node *x,int i){
+struct node *os_select(struct node *x,int i){ //查找具有给定秩的元素
 	int r=x->left->size+1;
 	if(i==r)
 		return x;
@@ -245,7 +245,7 @@ struct node *os_select(struct node *x,int i){
 		return os_select(x->right,i-r);
 }
 
-int os_rank(struct node *x){
+int os_rank(struct node *x){ //确定一个元素的秩
 	int r=x->left->size+1;
 	struct node *y=x;
 	while(y!=root){
@@ -256,7 +256,7 @@ int os_rank(struct node *x){
 	return r;
 }
 
-struct node *new_node(int k){
+struct node *new_node(int k){ //创建key为k的新结点
 	struct node *p=(struct node *)malloc(sizeof(struct node));
 	p->color=BLACK;
 	p->key=k;
@@ -267,7 +267,7 @@ struct node *new_node(int k){
 	return p;
 }
 
-void preorder(struct node *p,FILE *fp){
+void preorder(struct node *p,FILE *fp){ //先序遍历
 	if(p==NIL)
 		return;
 	fprintf(fp,"%d\n",p->key);
@@ -275,7 +275,7 @@ void preorder(struct node *p,FILE *fp){
 	preorder(p->right,fp);
 }
 
-void inorder(struct node *p,FILE *fp){
+void inorder(struct node *p,FILE *fp){ //中序遍历
 	if(p==NIL)
 		return;
 	inorder(p->left,fp);
@@ -283,7 +283,7 @@ void inorder(struct node *p,FILE *fp){
 	inorder(p->right,fp);
 }
 
-void postorder(struct node *p,FILE *fp){
+void postorder(struct node *p,FILE *fp){ //后序遍历
 	if(p==NIL)
 		return;
 	postorder(p->left,fp);
@@ -291,7 +291,7 @@ void postorder(struct node *p,FILE *fp){
 	fprintf(fp,"%d\n",p->key);
 }
 
-void output(struct node *p){
+void output(struct node *p){ //打印树的结构详细信息，用于画图
 	if(p==NIL)
 		return;
 	output(p->left);
@@ -301,16 +301,16 @@ void output(struct node *p){
 
 int main(){
 	FILE *fp;
-	int data[80];
-	struct node *nodes[10];
+	int data[80]; //保存读入的数据
+	struct node *nodes[10]; //保存新建的结点
 	int i,j;
 	int n;
-	char path[100];
+	char path[100]; //文件名
 
 	double diff,total;
 	struct timespec start,stop;
 
-	struct node *node1,*node2;
+	struct node *node1,*node2; //保存待删除的结点
 
 	node_NIL.color=BLACK;
 	node_NIL.key=-1;
@@ -319,24 +319,26 @@ int main(){
 	node_NIL.p=NULL;
 	node_NIL.size=0;
 
+	//从文件读入数据
 	fp=fopen("../input/input.txt","rt");
 	for(i=0;i<80;i++){
 		fscanf(fp,"%d",&data[i]);
 	}
 	fclose(fp);
 
+	//循环每种数据规模
 	for(n=20;n<=80;n+=20){
 		sprintf(path,"../output/size%d/time1.txt",n);
 		fp=fopen(path,"wt");
 		root=NIL;
 		total=0;
-		for(i=0;i<n;i+=10){
+		for(i=0;i<n;i+=10){ //每10个计时
 			for(j=0;j<10;j++)
-				nodes[j]=new_node(data[i+j]);
-			clock_gettime(CLOCK_MONOTONIC,&start);
+				nodes[j]=new_node(data[i+j]); //准备要插入的结点
+			clock_gettime(CLOCK_MONOTONIC,&start); //开始计时
 			for(j=0;j<10;j++)
 				rb_insert(nodes[j]);
-			clock_gettime(CLOCK_MONOTONIC,&stop);
+			clock_gettime(CLOCK_MONOTONIC,&stop); //结束计时
 			diff=(stop.tv_sec-start.tv_sec)+(double)(stop.tv_nsec-start.tv_nsec )/1000000000L;
 			total+=diff;
 			fprintf(fp,"insert %d~%d %.9fs\n",i,i+9,diff);
@@ -344,21 +346,25 @@ int main(){
 		fprintf(fp,"insert total %.9fs\n",total);
 		fclose(fp);
 
+		//先序遍历
 		sprintf(path,"../output/size%d/preorder.txt",n);
 		fp=fopen(path,"wt");
 		preorder(root,fp);
 		fclose(fp);
 
+		//中序遍历
 		sprintf(path,"../output/size%d/inorder.txt",n);
 		fp=fopen(path,"wt");
 		inorder(root,fp);
 		fclose(fp);
 
+		//后序遍历
 		sprintf(path,"../output/size%d/postorder.txt",n);
 		fp=fopen(path,"wt");
 		postorder(root,fp);
 		fclose(fp);
 
+		//找到第n/4和n/2小的结点
 		node1=os_select(root,n/4);
 		node2=os_select(root,n/2);
 
@@ -369,12 +375,13 @@ int main(){
 
 		sprintf(path,"../output/size%d/time2.txt",n);
 		fp=fopen(path,"wt");
-		if(n==20){
+		if(n==20){ //n=20时输出树的结构用于画图
 			printf("before delete");
 			output(root);
 		}
+		//删除结点计时
 		clock_gettime(CLOCK_MONOTONIC,&start);
-		rb_delete(node1);
+		rb_delete(node1); //删除n/4
 		clock_gettime(CLOCK_MONOTONIC,&stop);
 		diff=(stop.tv_sec-start.tv_sec)+(double)(stop.tv_nsec-start.tv_nsec )/1000000000L;
 		fprintf(fp,"delete node1 %.9fs\n",diff);
@@ -383,7 +390,7 @@ int main(){
 			output(root);
 		}
 		clock_gettime(CLOCK_MONOTONIC,&start);
-		rb_delete(node2);
+		rb_delete(node2); //删除n/2
 		clock_gettime(CLOCK_MONOTONIC,&stop);
 		diff=(stop.tv_sec-start.tv_sec)+(double)(stop.tv_nsec-start.tv_nsec )/1000000000L;
 		fprintf(fp,"delete node2 %.9fs\n",diff);
@@ -395,7 +402,7 @@ int main(){
 
 		sprintf(path,"../output/size%d/delete_inorder.txt",n);
 		fp=fopen(path,"wt");
-		inorder(root,fp);
+		inorder(root,fp); //删除后的中序遍历
 		fclose(fp);
 	}
 
